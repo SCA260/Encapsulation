@@ -14,6 +14,12 @@
 *.userprefs
 #vcxproj
 *.vcxproj.filters
+# VS configuration
+*Encapsulation.vcxproj.user
+*.ipch
+*Encapsulation.vcxproj
+*Encapsulation.vcxproj.filters
+
 
 # Mono auto generated files
 mono_crash.*
