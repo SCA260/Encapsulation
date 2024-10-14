@@ -6,7 +6,7 @@
 using namespace std;
 #include <iostream>
 #include "SDL_wrapper.h"
-int win_height = 1000;int win_width = 1000;
+int win_height = 800;int win_width = 1000;
 
 // Function to draw circles
 class Circle {
