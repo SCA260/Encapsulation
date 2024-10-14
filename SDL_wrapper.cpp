@@ -6,13 +6,13 @@
 using namespace std;
 
 SDLWrapper::SDLWrapper(const char* title, int win_width, int win_height){
-        // Initialisation de la SDL
+        //SDL Initialisation 
         if (SDL_Init(SDL_INIT_VIDEO) != 0 || TTF_Init() != 0) {
             cout << "Erreur d'initialisation de la SDL : " << SDL_GetError() << endl;
             exit(EXIT_FAILURE);
         }
 
-        // Création de la fenêtre
+        //window creation
         fenetre = SDL_CreateWindow(title,
             SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, win_width, win_height, SDL_WINDOW_RESIZABLE);
 
@@ -22,7 +22,7 @@ SDLWrapper::SDLWrapper(const char* title, int win_width, int win_height){
             exit(EXIT_FAILURE);
         }
 
-        // Création du renderer
+        // renderer creation
         renderer = SDL_CreateRenderer(fenetre, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC/2);
         if (renderer == NULL) {
             cout << "Erreur lors de la création du renderer : " << SDL_GetError() << endl;
@@ -30,13 +30,13 @@ SDLWrapper::SDLWrapper(const char* title, int win_width, int win_height){
             SDL_Quit();
             exit(EXIT_FAILURE);
         }
-        //texte/fps
+        //text/fps
         lastFrameTime = SDL_GetTicks();
         framecount = 0;
         texW = 0;
         texH = 0;
 
-        // Charger la police
+        // Charge font
         font = TTF_OpenFont("./impact.ttf", 24);
         if (!font) {
             cerr << "Erreur lors du chargement de la police : " << TTF_GetError() << endl;
@@ -86,7 +86,7 @@ bool SDLWrapper::running() const {
     return isRunning;
 }
 
-// Fonction pour rendre du texte
+//function to renderer text
 SDL_Texture* SDLWrapper::renderText(const std::string& message, SDL_Color color, int fontSize) {
     SDL_Surface* surface = TTF_RenderText_Solid(font, message.c_str(), color);
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
@@ -94,7 +94,7 @@ SDL_Texture* SDLWrapper::renderText(const std::string& message, SDL_Color color,
     return texture;
 }
 
-// Fonction pour calculer les FPS
+//function to calc fps
 float SDLWrapper::calculateFPS() {
     Uint32 currentTime = SDL_GetTicks();
     framecount++;
@@ -108,7 +108,7 @@ float SDLWrapper::calculateFPS() {
     return -1.0f;
 }
 
-// Fonction pour mettre à jour les FPS
+//function to update fps
 void SDLWrapper::updateFPS() {
     float fps = calculateFPS();
     if (fps >= 0) {
@@ -125,7 +125,7 @@ void SDLWrapper::updateFPS() {
     }
 }
 
-// Fonction pour afficher les FPS à l'écran
+//function to render fps on screen
 void SDLWrapper::renderFPS() {
     if (fpsTexture) {
         SDL_Rect dstRect = { 10, 10, texW, texH };
