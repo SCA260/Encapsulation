@@ -8,7 +8,7 @@ using namespace std;
 #include "SDL_wrapper.h"
 int win_height = 1000;int win_width = 1000;
 
-// Fonction pour dessiner un cercle
+// Function to draw circles
 class Circle {
 private:
     int xc = 200; int yc = 200; int r = 40; int vcx; int vcy; Uint8 red, green, blue;
@@ -20,8 +20,8 @@ public:
         SDL_SetRenderDrawColor(renderer, red, green, blue,255);
         for (int w = 0; w < r * 2; w++) {
             for (int h = 0; h < r * 2; h++) {
-                int dcx = r - w;  // distance horizontale au centre
-                int dcy = r - h;  // distance verticale au centre
+                int dcx = r - w;  //horizontal distance to center
+                int dcy = r - h;  //vertical distance to center
                 if ((dcx * dcx + dcy * dcy) <= (r * r)) {
                     SDL_RenderDrawPoint(renderer, xc + dcx, yc + dcy);
                 }
@@ -33,21 +33,19 @@ public:
 
            xc += vcx;
            yc += vcy;
-
-        // Collision cercle 1 avec les bords de la fenêtre
+        // Collision circle 1 with window edges
         if (xc - r <= 0 || xc + r >= win_width) vcx = -vcx;
         if (yc - r <= 0 || yc + r >= win_height) vcy = -vcy;
     }
-
-        // Fonction pour vérifier la collision entre deux cercles
+        //Function to verify collision between two circles
     bool checkCollision(const Circle& other) const{
-        // Calcul de la distance entre les centres des deux cercles
+        // Calc distance between both circles centers
         int dx = other.xc - xc;
         int dy = other.yc - yc;
-        int distanceSquared = dx * dx + dy * dy; // Distance au carré
+        int distanceSquared = dx * dx + dy * dy; // Distance squared
 
-        int sumRadii = r + other.r; // Somme des rayons
-        return distanceSquared <= (sumRadii * sumRadii);  // Vérification collision
+        int sumRadii = r + other.r; // sum of rays
+        return distanceSquared <= (sumRadii * sumRadii);  // Verification collisions
     }
     void inverser_vitesse() {
         vcx = -vcx;
@@ -59,24 +57,20 @@ public:
     bool isOverlapping(const Circle& newCircle, const vector<Circle>& circles) {
         for (const auto& circle : circles) {
             if (newCircle.checkCollision(circle)) {
-                return true;  // Il y a une collision
+                return true;  //collision true
             }
         }
-        return false;  // Pas de collision
+        return false;  // none collision
     }
 
 int main(int argc, char* argv[]) {
 
-    SDLWrapper sdlApp("Projet encapsulation Cohen Salomon", win_width, win_height);
-
-    //Circle circle_1(200, 200, 40, 5, 3, 255, 255, 0);
-    //Circle circle_2(400, 400, 40, -4, -2, 0, 0, 255);
+    SDLWrapper sdlApp("Project : Encapsulation circles rendering & collisions Cohen Salomon", win_width, win_height);
 
     vector<Circle> circles;
 
     int frame_count = 0;
-
-    // Boucle principale pour garder la fenêtre ouverte
+    //main loop to keep the window opened
     while (sdlApp.running()) {
         if (!sdlApp.processEvents()) break;
         
@@ -116,7 +110,7 @@ int main(int argc, char* argv[]) {
         for (size_t i = 0; i < circles.size(); i++) {
             circles[i].deplacement_cercle(win_width, win_height);
             circles[i].drawCircle(sdlApp.getRenderer());
-            // Vérification des collisions avec les autres cercles
+            // verification of collisions with other circles
             for (size_t j = i + 1; j < circles.size(); j++) {
                 if (circles[i].checkCollision(circles[j])) {
                     circles[i].inverser_vitesse();
@@ -128,7 +122,7 @@ int main(int argc, char* argv[]) {
         sdlApp.renderFPS();
 
         sdlApp.updateScreen();
-        // Attendre un court moment (10ms)
+        
         frame_count++;
     }
     return 0;   
