@@ -1,129 +1,134 @@
-#include "SDL.h"
-#include <iostream>
-#include <cmath>
-#include <vector>
-#include <cstdlib>
-using namespace std;
-#include <iostream>
 #include "SDL_wrapper.h"
-int win_height = 1080;int win_width = 1920;
+#include <iostream>
+#include <string>
+#include "SDL_ttf.h"
+#include "SDL.h"
+using namespace std;
 
-// Function to draw circles
-class Circle {
-private:
-    int xc = 200; int yc = 200; int r = 40; int vcx; int vcy; Uint8 red, green, blue;
-public:
-    Circle(int pos_x, int pos_y, int t_r, int speed_x, int speed_y, Uint8 r_color, Uint8 g_color, Uint8 b_color) {
-        xc = pos_x, yc = pos_y, r = t_r, vcx = speed_x, vcy = speed_y, red = r_color,green = g_color, blue = b_color;
-    }
-    void drawCircle(SDL_Renderer* renderer) {
-        SDL_SetRenderDrawColor(renderer, red, green, blue,255);
-        for (int w = 0; w < r * 2; w++) {
-            for (int h = 0; h < r * 2; h++) {
-                int dcx = r - w;  //horizontal distance to center
-                int dcy = r - h;  //vertical distance to center
-                if ((dcx * dcx + dcy * dcy) <= (r * r)) {
-                    SDL_RenderDrawPoint(renderer, xc + dcx, yc + dcy);
-                }
-            }
+SDLWrapper::SDLWrapper(const char* title, int win_width, int win_height){
+        //SDL Initialisation 
+        if (SDL_Init(SDL_INIT_VIDEO) != 0 || TTF_Init() != 0) {
+            cout << "Erreur d'initialisation de la SDL : " << SDL_GetError() << endl;
+            exit(EXIT_FAILURE);
+        }
+
+        //window creation
+        fenetre = SDL_CreateWindow(title,
+            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, win_width, win_height, SDL_WINDOW_RESIZABLE);
+
+        if (fenetre == NULL) {
+            cout << "Erreur lors de la création de la fenêtre : " << SDL_GetError() << endl;
+            SDL_Quit();
+            exit(EXIT_FAILURE);
+        }
+
+        // renderer creation
+        renderer = SDL_CreateRenderer(fenetre, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+        if (renderer == NULL) {
+            cout << "Erreur lors de la création du renderer : " << SDL_GetError() << endl;
+            SDL_DestroyWindow(fenetre);
+            SDL_Quit();
+            exit(EXIT_FAILURE);
+        }
+        //text/fps
+        lastFrameTime = SDL_GetTicks();
+        framecount = 0;
+        texW = 0;
+        texH = 0;
+
+        // Charge font
+        font = TTF_OpenFont("./impact.ttf", 24);
+        if (!font) {
+            cerr << "Erreur lors du chargement de la police : " << TTF_GetError() << endl;
+            exit(EXIT_FAILURE);
+        }
+
+        fpsTexture = nullptr;
+
+        isRunning = true;
+ }
+SDLWrapper::~SDLWrapper() {
+    SDL_DestroyTexture(fpsTexture);
+    TTF_CloseFont(font);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(fenetre);
+    TTF_Quit();
+    SDL_Quit();
+}
+
+bool SDLWrapper::processEvents() {
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT) {
+            isRunning = false;
         }
     }
+    return isRunning;
+}
+void SDLWrapper::clearScreen(Uint8 r, Uint8 g, Uint8 b) {
+    SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+    SDL_RenderClear(renderer);
+}
 
-    void deplacement_cercle(int win_width, int win_height) {
+void SDLWrapper::updateScreen() {
+    SDL_RenderPresent(renderer);
+}
 
-           xc += vcx;
-           yc += vcy;
-        // Collision circle 1 with window edges
-        if (xc - r <= 0 || xc + r >= win_width) vcx = -vcx;
-        if (yc - r <= 0 || yc + r >= win_height) vcy = -vcy;
+SDL_Renderer* SDLWrapper::getRenderer() {
+    return renderer;
+}
+
+void SDLWrapper::getWindowSize(int& win_width, int& win_height) {
+    SDL_GetWindowSize(fenetre, &win_width, &win_height);
+}
+
+bool SDLWrapper::running() const {
+    return isRunning;
+}
+
+//function to renderer text
+SDL_Texture* SDLWrapper::renderText(const std::string& message, SDL_Color color, int fontSize) {
+    SDL_Surface* surface = TTF_RenderText_Solid(font, message.c_str(), color);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+    return texture;
+}
+
+//function to calc fps
+float SDLWrapper::calculateFPS() {
+    Uint32 currentTime = SDL_GetTicks();
+    framecount++;
+
+    if (currentTime - lastFrameTime >= 1000) {
+        float fps = framecount / ((currentTime - lastFrameTime) / 1000.0f);
+        lastFrameTime = currentTime;
+        framecount = 0;
+        return fps;
     }
-        //Function to verify collision between two circles
-    bool checkCollision(const Circle& other) const{
-        // Calc distance between both circles centers
-        int dx = other.xc - xc;
-        int dy = other.yc - yc;
-        int distanceSquared = dx * dx + dy * dy; // Distance squared
+    return -1.0f;
+}
 
-        int sumRadii = r + other.r; // sum of rays
-        return distanceSquared <= (sumRadii * sumRadii);  // Verification collisions
-    }
-    void inverser_vitesse() {
-        vcx = -vcx;
-        vcy = -vcy;
-    }
-
-};
-
-    bool isOverlapping(const Circle& newCircle, const vector<Circle>& circles) {
-        for (const auto& circle : circles) {
-            if (newCircle.checkCollision(circle)) {
-                return true;  //collision true
-            }
+//function to update fps
+void SDLWrapper::updateFPS() {
+    float fps = calculateFPS();
+    if (fps >= 0) {
+        if (fpsTexture) {
+            SDL_DestroyTexture(fpsTexture);
         }
-        return false;  // none collision
-    }
 
-int main(int argc, char* argv[]) {
+        SDL_Color white = { 255, 255, 255, 255 };
+        fpsTexture = renderText("FPS: " + to_string(static_cast<int>(fps)), white, 24);
 
-    SDLWrapper sdlApp("Project : Encapsulation circles rendering & collisions Cohen Salomon", win_width, win_height);
-
-    vector<Circle> circles;
-
-    int frame_count = 0;
-    //main loop to keep the window opened
-    while (sdlApp.running()) {
-        if (!sdlApp.processEvents()) break;
-        
-        int win_width, win_height;
-        sdlApp.getWindowSize(win_width, win_height);
-        
-        //random
-        if (/*sdlApp.running()*/ frame_count % 40 == 0) {
-            int random_radius = rand() % 20 + 10;
-            int random_x, random_y, random_vx, random_vy;
-            Uint8 random_r, random_g, random_b;
-            bool positionValide = false;
-            while (!positionValide) {
-                random_x = rand() % (win_width - 2 * random_radius) + random_radius;
-                random_y = rand() % (win_height - 2 * random_radius) + random_radius;
-                random_vx = rand() % 7 - 2;
-                random_vy = rand() % 7 - 2;
-                //random color
-                random_r = rand() % 256;
-                random_g = rand() % 256;
-                random_b = rand() % 256;
-                Circle newCircle(random_x, random_y, random_radius, random_vx, random_vy, random_r, random_g, random_b);
-
-                if (!isOverlapping(newCircle, circles)) {
-                    circles.push_back(newCircle);
-                    positionValide = true;
-                }
-
-                //circles.push_back(Circle(random_x, random_y, random_radius, random_vx, random_vy, random_r, random_g, random_b));
-
-            }
-            
-
+        if (fpsTexture) {
+            SDL_QueryTexture(fpsTexture, nullptr, nullptr, &texW, &texH);
         }
-        sdlApp.clearScreen(0, 0, 0);
-
-        for (size_t i = 0; i < circles.size(); i++) {
-            circles[i].deplacement_cercle(win_width, win_height);
-            circles[i].drawCircle(sdlApp.getRenderer());
-            // verification of collisions with other circles
-            for (size_t j = i + 1; j < circles.size(); j++) {
-                if (circles[i].checkCollision(circles[j])) {
-                    circles[i].inverser_vitesse();
-                    circles[j].inverser_vitesse();
-                }
-            }
-        }
-        sdlApp.updateFPS();
-        sdlApp.renderFPS();
-
-        sdlApp.updateScreen();
-        
-        frame_count++;
     }
-    return 0;   
+}
+
+//function to render fps on screen
+void SDLWrapper::renderFPS() {
+    if (fpsTexture) {
+        SDL_Rect dstRect = { 10, 10, texW, texH };
+        SDL_RenderCopy(renderer, fpsTexture, nullptr, &dstRect);
+    }
 }
