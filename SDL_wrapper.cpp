@@ -23,7 +23,7 @@ SDLWrapper::SDLWrapper(const char* title, int win_width, int win_height){
         }
 
         // renderer creation
-        renderer = SDL_CreateRenderer(fenetre, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC/2);
+        renderer = SDL_CreateRenderer(fenetre, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
         if (renderer == NULL) {
             cout << "Erreur lors de la création du renderer : " << SDL_GetError() << endl;
             SDL_DestroyWindow(fenetre);
