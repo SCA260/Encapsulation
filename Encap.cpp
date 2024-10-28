@@ -6,7 +6,7 @@
 using namespace std;
 #include <iostream>
 #include "SDL_wrapper.h"
-int win_height = 800;int win_width = 1000;
+int win_height = 1080;int win_width = 1920;
 
 // Function to draw circles
 class Circle {
@@ -78,16 +78,16 @@ int main(int argc, char* argv[]) {
         sdlApp.getWindowSize(win_width, win_height);
         
         //random
-        if (/*sdlApp.running()*/ frame_count % 30 == 0) {
-            int random_radius = rand() % 25 + 10;
+        if (/*sdlApp.running()*/ frame_count % 40 == 0) {
+            int random_radius = rand() % 20 + 10;
             int random_x, random_y, random_vx, random_vy;
             Uint8 random_r, random_g, random_b;
             bool positionValide = false;
             while (!positionValide) {
                 random_x = rand() % (win_width - 2 * random_radius) + random_radius;
-                random_y = rand() % (win_width - 2 * random_radius) + random_radius;
-                random_vx = rand() % 7 - 3;
-                random_vy = rand() % 7 - 3;
+                random_y = rand() % (win_height - 2 * random_radius) + random_radius;
+                random_vx = rand() % 7 - 2;
+                random_vy = rand() % 7 - 2;
                 //random color
                 random_r = rand() % 256;
                 random_g = rand() % 256;
