@@ -1,6 +1,7 @@
 #include "SDL_wrapper.h"
 #include <iostream>
 #include <string>
+#include "ImGui/imgui.h"
 #include "SDL_ttf.h"
 #include "SDL.h"
 using namespace std;
@@ -77,6 +78,9 @@ void SDLWrapper::updateScreen() {
 SDL_Renderer* SDLWrapper::getRenderer() {
     return renderer;
 }
+SDL_Window* SDLWrapper::get_fenetre() {
+    return fenetre;
+};
 
 void SDLWrapper::getWindowSize(int& win_width, int& win_height) {
     SDL_GetWindowSize(fenetre, &win_width, &win_height);
@@ -85,6 +89,17 @@ void SDLWrapper::getWindowSize(int& win_width, int& win_height) {
 bool SDLWrapper::running() const {
     return isRunning;
 }
+
+//void renderUi() {
+//    ImGui::NewFrame(); // Initialize ImGui context for the new frame
+//
+//    ImGui::Begin("UI Window");
+//    // Add ImGui widgets here
+//    ImGui::End();
+//
+//    ImGui::Render(); // Render ImGui frame
+//}
+
 
 //function to renderer text
 SDL_Texture* SDLWrapper::renderText(const std::string& message, SDL_Color color, int fontSize) {

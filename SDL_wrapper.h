@@ -19,13 +19,14 @@ private:
 public:
 	SDLWrapper(const char* title, int win_width, int win_height);
 	~SDLWrapper();
-	
+	SDL_Window* get_fenetre();
 	bool processEvents();
 	void clearScreen(Uint8 r, Uint8 g, Uint8 b);
 	void updateScreen();
 	SDL_Renderer* getRenderer();
 	void getWindowSize(int& win_width,int& win_height);
 	bool running() const;
+	//void renderUI();
 
 	//texte/fps
 	SDL_Texture* renderText(const std::string& message, SDL_Color color, int fontSize);
